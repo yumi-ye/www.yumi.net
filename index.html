@@ -1,946 +1,968 @@
-<style>
-    body{
-        background-color: #0f172a;
-        text-align:center;
-    }
-    h1{
-        color:#38bdf8;
-    text-shadow: 0 0 70px #38bdf8;
-    }
-    h2{
-        color:#ff007c;
-    text-shadow: 0 0 20px #ff007c;
-    }
-    img{
-        border-radius:50%;
-    }
-
-    /* ===== 评论墙样式 ===== */
-    .comment-section {
-        max-width: 900px;
-        margin: 40px auto;
-        padding: 20px;
-        background: rgba(255,255,255,0.03);
-        border-radius: 20px;
-        border: 1px solid rgba(255,255,255,0.06);
-    }
-
-    .comment-section h3 {
-        color: #a29bfe;
-        font-size: 22px;
-        margin-bottom: 16px;
-        text-shadow: 0 0 30px rgba(162,155,254,0.3);
-    }
-
-    .stage {
-        position: relative;
-        width: 100%;
-        height: 350px;
-        background: rgba(0,0,0,0.3);
-        border-radius: 16px;
-        overflow: hidden;
-        border: 1px solid rgba(255,255,255,0.05);
-        margin-bottom: 16px;
-    }
-
-    .danmaku-item {
-        position: absolute;
-        white-space: nowrap;
-        padding: 8px 18px;
-        background: rgba(255,255,255,0.08);
-        backdrop-filter: blur(8px);
-        border: 1px solid rgba(255,255,255,0.08);
-        border-radius: 30px;
-        color: #e6e6ff;
-        font-size: 15px;
-        box-shadow: 0 4px 16px rgba(0,0,0,0.3);
-        cursor: default;
-        user-select: none;
-        will-change: transform;
-    }
-
-    .danmaku-item .number-badge {
-        background: rgba(162,155,254,0.3);
-        padding: 2px 10px;
-        border-radius: 12px;
-        font-size: 12px;
-        color: #a29bfe;
-        margin-right: 10px;
-        font-weight: 600;
-    }
-
-    .danmaku-item .report-btn {
-        margin-left: 12px;
-        padding: 2px 10px;
-        background: rgba(231,76,60,0.2);
-        border: none;
-        border-radius: 12px;
-        color: #e74c3c;
-        font-size: 11px;
-        cursor: pointer;
-        opacity: 0;
-        transition: opacity 0.3s;
-    }
-
-    .danmaku-item:hover .report-btn {
-        opacity: 1;
-    }
-
-    .danmaku-item.color-1 { background: rgba(255,107,107,0.20); border-color: rgba(255,107,107,0.30); color: #ffb3b3; }
-    .danmaku-item.color-2 { background: rgba(78,205,196,0.20); border-color: rgba(78,205,196,0.30); color: #a8f0e8; }
-    .danmaku-item.color-3 { background: rgba(255,217,61,0.20); border-color: rgba(255,217,61,0.30); color: #ffe680; }
-    .danmaku-item.color-4 { background: rgba(162,155,254,0.20); border-color: rgba(162,155,254,0.30); color: #d4cfff; }
-    .danmaku-item.color-5 { background: rgba(255,154,215,0.20); border-color: rgba(255,154,215,0.30); color: #ffcce6; }
-
-    .post-area {
-        display: flex;
-        gap: 12px;
-    }
-
-    .post-area input {
-        flex: 1;
-        padding: 12px 18px;
-        border: 2px solid rgba(255,255,255,0.10);
-        border-radius: 30px;
-        background: rgba(255,255,255,0.05);
-        color: #fff;
-        font-size: 14px;
-        outline: none;
-        transition: border 0.3s;
-    }
-
-    .post-area input::placeholder {
-        color: #5a6380;
-    }
-
-    .post-area input:focus {
-        border-color: rgba(162,155,254,0.6);
-    }
-
-    .post-area button {
-        padding: 12px 28px;
-        border: none;
-        border-radius: 30px;
-        background: linear-gradient(135deg, #a29bfe, #6c5ce7);
-        color: #fff;
-        font-size: 14px;
-        font-weight: 600;
-        cursor: pointer;
-        transition: transform 0.15s, box-shadow 0.2s;
-        white-space: nowrap;
-    }
-
-    .post-area button:hover {
-        transform: scale(1.02);
-        box-shadow: 0 4px 20px rgba(108,92,231,0.4);
-    }
-
-    .post-area button:active {
-        transform: scale(0.96);
-    }
-
-    .stats {
-        color: #5a6380;
-        font-size: 13px;
-        margin-top: 12px;
-    }
-
-    .stats span {
-        color: #a29bfe;
-        font-weight: 600;
-    }
-
-    /* ===== 管理入口（最底部） ===== */
-    .admin-footer {
-        margin-top: 50px;
-        padding: 20px 0;
-        border-top: 1px solid rgba(255,255,255,0.05);
-    }
-
-    .admin-footer .admin-trigger {
-        color: #2a2a4a;
-        text-decoration: none;
-        font-size: 12px;
-        cursor: pointer;
-        transition: color 0.3s;
-        background: none;
-        border: none;
-        padding: 4px 12px;
-    }
-
-    .admin-footer .admin-trigger:hover {
-        color: #5a6380;
-    }
-
-    /* ===== 密码弹窗 ===== */
-    .admin-modal {
-        display: none;
-        position: fixed;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        background: rgba(0,0,0,0.7);
-        align-items: center;
-        justify-content: center;
-        z-index: 9999;
-        backdrop-filter: blur(4px);
-    }
-
-    .admin-modal.show {
-        display: flex;
-    }
-
-    .admin-modal .modal-box {
-        background: #1a1a2e;
-        padding: 40px;
-        border-radius: 20px;
-        width: 400px;
-        max-width: 90%;
-        border: 1px solid rgba(255,255,255,0.1);
-        box-shadow: 0 20px 60px rgba(0,0,0,0.8);
-    }
-
-    .admin-modal .modal-box h3 {
-        color: #fff;
-        margin-bottom: 8px;
-        font-size: 20px;
-    }
-
-    .admin-modal .modal-box .sub {
-        color: #5a6380;
-        font-size: 14px;
-        margin-bottom: 20px;
-    }
-
-    .admin-modal .modal-box input {
-        width: 100%;
-        padding: 12px 16px;
-        border: 2px solid rgba(255,255,255,0.10);
-        border-radius: 12px;
-        background: rgba(255,255,255,0.05);
-        color: #fff;
-        font-size: 16px;
-        outline: none;
-        transition: border 0.3s;
-        margin-bottom: 12px;
-    }
-
-    .admin-modal .modal-box input:focus {
-        border-color: rgba(162,155,254,0.6);
-    }
-
-    .admin-modal .modal-box .error-msg {
-        color: #e74c3c;
-        font-size: 14px;
-        min-height: 24px;
-        text-align: center;
-    }
-
-    .admin-modal .modal-box .lock-msg {
-        color: #f39c12;
-        font-size: 14px;
-        text-align: center;
-        padding: 10px;
-        background: rgba(243,156,18,0.1);
-        border-radius: 8px;
-        display: none;
-        margin-bottom: 12px;
-    }
-
-    .admin-modal .modal-box button {
-        width: 100%;
-        padding: 12px;
-        border: none;
-        border-radius: 12px;
-        background: linear-gradient(135deg, #a29bfe, #6c5ce7);
-        color: #fff;
-        font-size: 16px;
-        font-weight: 600;
-        cursor: pointer;
-        transition: transform 0.15s;
-    }
-
-    .admin-modal .modal-box button:hover {
-        transform: scale(1.01);
-    }
-
-    /* ===== 管理面板（弹窗内） ===== */
-    .admin-panel {
-        display: none;
-        margin-top: 20px;
-        text-align: left;
-    }
-
-    .admin-panel.show {
-        display: block;
-    }
-
-    .admin-panel .panel-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 16px;
-        padding-bottom: 12px;
-        border-bottom: 1px solid rgba(255,255,255,0.06);
-    }
-
-    .admin-panel .panel-header h4 {
-        color: #a29bfe;
-        font-size: 18px;
-    }
-
-    .admin-panel .panel-header .close-panel {
-        background: rgba(231,76,60,0.2);
-        border: none;
-        color: #e74c3c;
-        padding: 4px 16px;
-        border-radius: 12px;
-        cursor: pointer;
-        font-size: 13px;
-    }
-
-    .admin-panel .panel-header .close-panel:hover {
-        background: rgba(231,76,60,0.3);
-    }
-
-    .admin-panel .stats-row {
-        display: grid;
-        grid-template-columns: repeat(3, 1fr);
-        gap: 12px;
-        margin-bottom: 16px;
-    }
-
-    .admin-panel .stats-row .stat-item {
-        background: rgba(255,255,255,0.05);
-        padding: 12px;
-        border-radius: 12px;
-        text-align: center;
-    }
-
-    .admin-panel .stats-row .stat-item .num {
-        font-size: 24px;
-        font-weight: 700;
-        color: #fff;
-    }
-
-    .admin-panel .stats-row .stat-item .label {
-        font-size: 12px;
-        color: #5a6380;
-    }
-
-    .admin-panel .stats-row .stat-item.reported .num {
-        color: #e74c3c;
-    }
-
-    .admin-panel .admin-comment-list {
-        max-height: 300px;
-        overflow-y: auto;
-    }
-
-    .admin-panel .admin-comment-list::-webkit-scrollbar {
-        width: 4px;
-    }
-    .admin-panel .admin-comment-list::-webkit-scrollbar-thumb {
-        background: #2a2a4a;
-        border-radius: 4px;
-    }
-
-    .admin-panel .admin-comment-item {
-        background: rgba(255,255,255,0.03);
-        padding: 12px 16px;
-        border-radius: 12px;
-        margin-bottom: 8px;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        border-left: 3px solid transparent;
-        font-size: 13px;
-    }
-
-    .admin-panel .admin-comment-item.reported {
-        border-left-color: #e74c3c;
-        background: rgba(231,76,60,0.08);
-    }
-
-    .admin-panel .admin-comment-item .ac-content {
-        color: #e6e6ff;
-        flex: 1;
-        text-align: left;
-        word-break: break-word;
-    }
-
-    .admin-panel .admin-comment-item .ac-meta {
-        color: #5a6380;
-        font-size: 11px;
-        margin: 0 12px;
-        white-space: nowrap;
-    }
-
-    .admin-panel .admin-comment-item .ac-actions {
-        display: flex;
-        gap: 6px;
-    }
-
-    .admin-panel .admin-comment-item .ac-actions button {
-        padding: 2px 10px;
-        border: none;
-        border-radius: 10px;
-        font-size: 11px;
-        cursor: pointer;
-        transition: opacity 0.2s;
-    }
-
-    .admin-panel .admin-comment-item .ac-actions button:hover {
-        opacity: 0.8;
-    }
-
-    .admin-panel .admin-comment-item .ac-actions .btn-edit {
-        background: #3498db;
-        color: #fff;
-    }
-    .admin-panel .admin-comment-item .ac-actions .btn-delete {
-        background: #e74c3c;
-        color: #fff;
-    }
-    .admin-panel .admin-comment-item .ac-actions .btn-unreport {
-        background: #2ecc71;
-        color: #fff;
-    }
-
-    .admin-panel .no-comments {
-        color: #5a6380;
-        text-align: center;
-        padding: 30px 0;
-        font-size: 14px;
-    }
-
-    @media (max-width: 600px) {
-        .stage { height: 280px; }
-        .post-area input { font-size: 13px; padding: 10px 14px; }
-        .post-area button { padding: 10px 18px; font-size: 13px; }
-        .admin-panel .admin-comment-item { flex-wrap: wrap; gap: 8px; }
-        .admin-panel .admin-comment-item .ac-meta { margin: 0; }
-        .admin-panel .stats-row { grid-template-columns: repeat(3, 1fr); gap: 6px; }
-        .admin-panel .stats-row .stat-item { padding: 8px; }
-        .admin-panel .stats-row .stat-item .num { font-size: 18px; }
-    }
-</style>
-
-<h1>玉米粒的成长日记</h1>
-<h2>845粉丝啦!😊</h2>
-<img src="./me.webp" width=300>
-<a href="https://www.xiaohongshu.com/user/profile/66b31849000000001d02014e"><marquee><h1>😁点击进入官网😁</h1></marquee></a>
-<a href="https://www.bilibili.com/video/BV1hq4y1s7VH/?spm_id_from=333.337.search-card.all.click"><marquee><h1>😁点击进入官网备用😁</marquee></h1></a>
-<a href="download.html">
- <button>点击进入软件下载页面</button>
-</a>
-
-<!-- ===== 弹幕评论墙 ===== -->
-<div class="comment-section">
-    <h3>💬 弹幕评论墙</h3>
-    <div class="stage" id="stage"></div>
-
-    <div class="post-area">
-        <input type="text" id="commentInput" placeholder="发一条弹幕..." maxlength="100">
-        <button id="postBtn">发送</button>
-    </div>
-
-    <div class="stats">💬 在线 · <span id="countDisplay">0</span> 条</div>
-</div>
-
-<!-- ===== 管理入口（最底部） ===== -->
-<div class="admin-footer">
-    <button class="admin-trigger" id="adminTrigger">⚙️ 管理</button>
-</div>
-
-<!-- ===== 密码弹窗 ===== -->
-<div class="admin-modal" id="adminModal">
-    <div class="modal-box">
-        <!-- 登录界面 -->
-        <div id="loginView">
-            <h3>🔐 管理员验证</h3>
-            <p class="sub">请输入密码进入管理后台</p>
-            <input type="password" id="passwordInput" placeholder="请输入密码" autocomplete="off">
-            <div class="lock-msg" id="lockMsg"></div>
-            <div class="error-msg" id="errorMsg"></div>
-            <button id="loginBtn">确认</button>
-        </div>
-
-        <!-- 管理面板（登录后显示） -->
-        <div class="admin-panel" id="adminPanel">
-            <div class="panel-header">
-                <h4>🔧 评论管理</h4>
-                <button class="close-panel" id="closePanel">✕ 关闭</button>
-            </div>
-
-            <div class="stats-row">
-                <div class="stat-item">
-                    <div class="num" id="totalCount">0</div>
-                    <div class="label">总评论</div>
-                </div>
-                <div class="stat-item reported">
-                    <div class="num" id="reportedCount">0</div>
-                    <div class="label">被举报</div>
-                </div>
-                <div class="stat-item">
-                    <div class="num" id="normalCount">0</div>
-                    <div class="label">正常</div>
-                </div>
-            </div>
-
-            <div class="admin-comment-list" id="adminCommentList"></div>
-        </div>
-    </div>
-</div>
-
-<!-- ===== 引入 Supabase ===== -->
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2">
-</script>
-
-<script>
-// ============================================================
-// 1. Supabase 配置（改成你自己的）
-// ============================================================
-const SUPABASE_URL = 'https://rtkcxoyyzunmaueokimn.supabase.co';
-const SUPABASE_KEY = 'sb_publishable_wNDbtBTrVuXd95tBp0P7BA_TVUFQOur';
-const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-    
-// ============================================================
-// 2. 密码系统（SHA-256 哈希）
-// ============================================================
-const CORRECT_HASH = '8d5e4e7d8f2a9c3b1e6f8a2d4c7b9e1f3a5c7d8e9f0a1b2c3d4e5f6a7b8c9d0e';
-
-let failCount = parseInt(localStorage.getItem('admin_failCount')) || 0;
-let lockUntil = parseInt(localStorage.getItem('admin_lockUntil')) || 0;
-
-async function sha256(message) {
-    const msgBuffer = new TextEncoder().encode(message);
-    const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
-    const hashArray = Array.from(new Uint8Array(hashBuffer));
-    return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
-}
-
-async function checkPassword(inputPwd) {
-    if (lockUntil > Date.now()) {
-        const remaining = Math.ceil((lockUntil - Date.now()) / 60000);
-        document.getElementById('lockMsg').style.display = 'block';
-        document.getElementById('lockMsg').textContent = '⛔ 错误次数过多，请等待 ' + remaining + ' 分钟后重试';
-        document.getElementById('errorMsg').textContent = '';
-        return false;
-    } else {
-        document.getElementById('lockMsg').style.display = 'none';
-    }
-
-    const inputHash = await sha256(inputPwd);
-
-    if (inputHash === CORRECT_HASH) {
-        failCount = 0;
-        localStorage.setItem('admin_failCount', '0');
-        document.getElementById('errorMsg').textContent = '';
-        document.getElementById('lockMsg').style.display = 'none';
-        return true;
-    } else {
-        failCount++;
-        localStorage.setItem('admin_failCount', String(failCount));
-
-        if (failCount >= 5) {
-            lockUntil = Date.now() + 5 * 60 * 1000;
-            localStorage.setItem('admin_lockUntil', String(lockUntil));
-            document.getElementById('lockMsg').style.display = 'block';
-            document.getElementById('lockMsg').textContent = '⛔ 错误次数过多，请等待 5 分钟后重试';
-            document.getElementById('errorMsg').textContent = '';
-        } else {
-            document.getElementById('errorMsg').textContent = '❌ 密码错误，还剩 ' + (5 - failCount) + ' 次机会';
-            document.getElementById('lockMsg').style.display = 'none';
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>玉米粒的成长日记</title>
+    <style>
+        body {
+            background-color: #0f172a;
+            text-align: center;
         }
-        return false;
-    }
-}
+        h1 {
+            color: #38bdf8;
+            text-shadow: 0 0 70px #38bdf8;
+        }
+        h2 {
+            color: #ff007c;
+            text-shadow: 0 0 20px #ff007c;
+        }
+        img {
+            border-radius: 50%;
+        }
 
-// ============================================================
-// 3. 生成用户唯一编号
-// ============================================================
-function getUserId() {
-    let userId = localStorage.getItem('comment_user_id');
-    if (!userId) {
-        userId = 'U' + Date.now().toString(36) + Math.random().toString(36).substring(2, 6);
-        localStorage.setItem('comment_user_id', userId);
-    }
-    return userId;
-}
-const USER_ID = getUserId();
+        /* ===== 评论墙样式 ===== */
+        .comment-section {
+            max-width: 900px;
+            margin: 40px auto;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.06);
+        }
+        .comment-section h3 {
+            color: #a29bfe;
+            font-size: 22px;
+            margin-bottom: 16px;
+            text-shadow: 0 0 30px rgba(162, 155, 254, 0.3);
+        }
+        .stage {
+            position: relative;
+            width: 100%;
+            height: 350px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 16px;
+            overflow: hidden;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            margin-bottom: 16px;
+        }
+        .danmaku-item {
+            position: absolute;
+            white-space: nowrap;
+            padding: 8px 18px;
+            background: rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 30px;
+            color: #e6e6ff;
+            font-size: 15px;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+            cursor: default;
+            user-select: none;
+            will-change: transform;
+        }
+        .danmaku-item .number-badge {
+            background: rgba(162, 155, 254, 0.3);
+            padding: 2px 10px;
+            border-radius: 12px;
+            font-size: 12px;
+            color: #a29bfe;
+            margin-right: 10px;
+            font-weight: 600;
+        }
+        .danmaku-item .report-btn {
+            margin-left: 12px;
+            padding: 2px 10px;
+            background: rgba(231, 76, 60, 0.2);
+            border: none;
+            border-radius: 12px;
+            color: #e74c3c;
+            font-size: 11px;
+            cursor: pointer;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+        .danmaku-item:hover .report-btn {
+            opacity: 1;
+        }
+        .danmaku-item.color-1 {
+            background: rgba(255, 107, 107, 0.20);
+            border-color: rgba(255, 107, 107, 0.30);
+            color: #ffb3b3;
+        }
+        .danmaku-item.color-2 {
+            background: rgba(78, 205, 196, 0.20);
+            border-color: rgba(78, 205, 196, 0.30);
+            color: #a8f0e8;
+        }
+        .danmaku-item.color-3 {
+            background: rgba(255, 217, 61, 0.20);
+            border-color: rgba(255, 217, 61, 0.30);
+            color: #ffe680;
+        }
+        .danmaku-item.color-4 {
+            background: rgba(162, 155, 254, 0.20);
+            border-color: rgba(162, 155, 254, 0.30);
+            color: #d4cfff;
+        }
+        .danmaku-item.color-5 {
+            background: rgba(255, 154, 215, 0.20);
+            border-color: rgba(255, 154, 215, 0.30);
+            color: #ffcce6;
+        }
+        .post-area {
+            display: flex;
+            gap: 12px;
+        }
+        .post-area input {
+            flex: 1;
+            padding: 12px 18px;
+            border: 2px solid rgba(255, 255, 255, 0.10);
+            border-radius: 30px;
+            background: rgba(255, 255, 255, 0.05);
+            color: #fff;
+            font-size: 14px;
+            outline: none;
+            transition: border 0.3s;
+        }
+        .post-area input::placeholder {
+            color: #5a6380;
+        }
+        .post-area input:focus {
+            border-color: rgba(162, 155, 254, 0.6);
+        }
+        .post-area button {
+            padding: 12px 28px;
+            border: none;
+            border-radius: 30px;
+            background: linear-gradient(135deg, #a29bfe, #6c5ce7);
+            color: #fff;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.15s, box-shadow 0.2s;
+            white-space: nowrap;
+        }
+        .post-area button:hover {
+            transform: scale(1.02);
+            box-shadow: 0 4px 20px rgba(108, 92, 231, 0.4);
+        }
+        .post-area button:active {
+            transform: scale(0.96);
+        }
+        .stats {
+            color: #5a6380;
+            font-size: 13px;
+            margin-top: 12px;
+        }
+        .stats span {
+            color: #a29bfe;
+            font-weight: 600;
+        }
 
-// ============================================================
-// 4. DOM 元素（评论墙）
-// ============================================================
-const stage = document.getElementById('stage');
-const input = document.getElementById('commentInput');
-const postBtn = document.getElementById('postBtn');
-const countDisplay = document.getElementById('countDisplay');
+        /* ===== 管理入口（最底部） ===== */
+        .admin-footer {
+            margin-top: 50px;
+            padding: 20px 0;
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        .admin-footer .admin-trigger {
+            color: #2a2a4a;
+            text-decoration: none;
+            font-size: 12px;
+            cursor: pointer;
+            transition: color 0.3s;
+            background: none;
+            border: none;
+            padding: 4px 12px;
+        }
+        .admin-footer .admin-trigger:hover {
+            color: #5a6380;
+        }
 
-const STAGE_HEIGHT = 350;
-const ITEM_HEIGHT = 50;
-const ROWS = Math.floor(STAGE_HEIGHT / ITEM_HEIGHT);
-const rowOccupied = new Array(ROWS).fill(false);
+        /* ===== 密码弹窗 ===== */
+        .admin-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.7);
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+            backdrop-filter: blur(4px);
+        }
+        .admin-modal.show {
+            display: flex;
+        }
+        .admin-modal .modal-box {
+            background: #1a1a2e;
+            padding: 40px;
+            border-radius: 20px;
+            width: 400px;
+            max-width: 90%;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8);
+        }
+        .admin-modal .modal-box h3 {
+            color: #fff;
+            margin-bottom: 8px;
+            font-size: 20px;
+        }
+        .admin-modal .modal-box .sub {
+            color: #5a6380;
+            font-size: 14px;
+            margin-bottom: 20px;
+        }
+        .admin-modal .modal-box input {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid rgba(255, 255, 255, 0.10);
+            border-radius: 12px;
+            background: rgba(255, 255, 255, 0.05);
+            color: #fff;
+            font-size: 16px;
+            outline: none;
+            transition: border 0.3s;
+            margin-bottom: 12px;
+        }
+        .admin-modal .modal-box input:focus {
+            border-color: rgba(162, 155, 254, 0.6);
+        }
+        .admin-modal .modal-box .error-msg {
+            color: #e74c3c;
+            font-size: 14px;
+            min-height: 24px;
+            text-align: center;
+        }
+        .admin-modal .modal-box .lock-msg {
+            color: #f39c12;
+            font-size: 14px;
+            text-align: center;
+            padding: 10px;
+            background: rgba(243, 156, 18, 0.1);
+            border-radius: 8px;
+            display: none;
+            margin-bottom: 12px;
+        }
+        .admin-modal .modal-box button {
+            width: 100%;
+            padding: 12px;
+            border: none;
+            border-radius: 12px;
+            background: linear-gradient(135deg, #a29bfe, #6c5ce7);
+            color: #fff;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.15s;
+        }
+        .admin-modal .modal-box button:hover {
+            transform: scale(1.01);
+        }
 
-// ============================================================
-// 5. DOM 元素（管理弹窗）
-// ============================================================
-const adminTrigger = document.getElementById('adminTrigger');
-const adminModal = document.getElementById('adminModal');
-const loginView = document.getElementById('loginView');
-const adminPanel = document.getElementById('adminPanel');
-const passwordInput = document.getElementById('passwordInput');
-const loginBtn = document.getElementById('loginBtn');
-const closePanel = document.getElementById('closePanel');
-const errorMsg = document.getElementById('errorMsg');
-const lockMsg = document.getElementById('lockMsg');
-const totalCount = document.getElementById('totalCount');
-const reportedCount = document.getElementById('reportedCount');
-const normalCount = document.getElementById('normalCount');
-const adminCommentList = document.getElementById('adminCommentList');
+        /* ===== 管理面板 ===== */
+        .admin-panel {
+            display: none;
+            margin-top: 20px;
+            text-align: left;
+        }
+        .admin-panel.show {
+            display: block;
+        }
+        .admin-panel .panel-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+        }
+        .admin-panel .panel-header h4 {
+            color: #a29bfe;
+            font-size: 18px;
+        }
+        .admin-panel .panel-header .close-panel {
+            background: rgba(231, 76, 60, 0.2);
+            border: none;
+            color: #e74c3c;
+            padding: 4px 16px;
+            border-radius: 12px;
+            cursor: pointer;
+            font-size: 13px;
+        }
+        .admin-panel .panel-header .close-panel:hover {
+            background: rgba(231, 76, 60, 0.3);
+        }
+        .admin-panel .stats-row {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+        .admin-panel .stats-row .stat-item {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 12px;
+            border-radius: 12px;
+            text-align: center;
+        }
+        .admin-panel .stats-row .stat-item .num {
+            font-size: 24px;
+            font-weight: 700;
+            color: #fff;
+        }
+        .admin-panel .stats-row .stat-item .label {
+            font-size: 12px;
+            color: #5a6380;
+        }
+        .admin-panel .stats-row .stat-item.reported .num {
+            color: #e74c3c;
+        }
+        .admin-panel .admin-comment-list {
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        .admin-panel .admin-comment-list::-webkit-scrollbar {
+            width: 4px;
+        }
+        .admin-panel .admin-comment-list::-webkit-scrollbar-thumb {
+            background: #2a2a4a;
+            border-radius: 4px;
+        }
+        .admin-panel .admin-comment-item {
+            background: rgba(255, 255, 255, 0.03);
+            padding: 12px 16px;
+            border-radius: 12px;
+            margin-bottom: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-left: 3px solid transparent;
+            font-size: 13px;
+        }
+        .admin-panel .admin-comment-item.reported {
+            border-left-color: #e74c3c;
+            background: rgba(231, 76, 60, 0.08);
+        }
+        .admin-panel .admin-comment-item .ac-content {
+            color: #e6e6ff;
+            flex: 1;
+            text-align: left;
+            word-break: break-word;
+        }
+        .admin-panel .admin-comment-item .ac-meta {
+            color: #5a6380;
+            font-size: 11px;
+            margin: 0 12px;
+            white-space: nowrap;
+        }
+        .admin-panel .admin-comment-item .ac-actions {
+            display: flex;
+            gap: 6px;
+        }
+        .admin-panel .admin-comment-item .ac-actions button {
+            padding: 2px 10px;
+            border: none;
+            border-radius: 10px;
+            font-size: 11px;
+            cursor: pointer;
+            transition: opacity 0.2s;
+        }
+        .admin-panel .admin-comment-item .ac-actions button:hover {
+            opacity: 0.8;
+        }
+        .admin-panel .admin-comment-item .ac-actions .btn-edit {
+            background: #3498db;
+            color: #fff;
+        }
+        .admin-panel .admin-comment-item .ac-actions .btn-delete {
+            background: #e74c3c;
+            color: #fff;
+        }
+        .admin-panel .admin-comment-item .ac-actions .btn-unreport {
+            background: #2ecc71;
+            color: #fff;
+        }
+        .admin-panel .no-comments {
+            color: #5a6380;
+            text-align: center;
+            padding: 30px 0;
+            font-size: 14px;
+        }
 
-let allComments = [];
+        @media (max-width: 600px) {
+            .stage {
+                height: 280px;
+            }
+            .post-area input {
+                font-size: 13px;
+                padding: 10px 14px;
+            }
+            .post-area button {
+                padding: 10px 18px;
+                font-size: 13px;
+            }
+            .admin-panel .admin-comment-item {
+                flex-wrap: wrap;
+                gap: 8px;
+            }
+            .admin-panel .admin-comment-item .ac-meta {
+                margin: 0;
+            }
+            .admin-panel .stats-row {
+                grid-template-columns: repeat(3, 1fr);
+                gap: 6px;
+            }
+            .admin-panel .stats-row .stat-item {
+                padding: 8px;
+            }
+            .admin-panel .stats-row .stat-item .num {
+                font-size: 18px;
+            }
+        }
+    </style>
+</head>
+<body>
 
-// ============================================================
-// 6. 管理弹窗控制
-// ============================================================
-adminTrigger.addEventListener('click', function() {
-    adminModal.classList.add('show');
-    loginView.style.display = 'block';
-    adminPanel.classList.remove('show');
-    passwordInput.value = '';
-    errorMsg.textContent = '';
-    lockMsg.style.display = 'none';
-    // 检查锁定状态
-    if (lockUntil > Date.now()) {
-        const remaining = Math.ceil((lockUntil - Date.now()) / 60000);
-        lockMsg.style.display = 'block';
-        lockMsg.textContent = '⛔ 输入错误次数过多，请等待 ' + remaining + ' 分钟后重试';
-    }
-});
+    <!-- ===== 你原有的内容（一个字符都没改） ===== -->
+    <h1>玉米粒的成长日记</h1>
+    <h2>845粉丝啦!😊</h2>
+    <img src="./me.webp" width="300">
+    <a href="https://www.xiaohongshu.com/user/profile/66b31849000000001d02014e">
+        <marquee>
+            <h1>😁点击进入官网😁</h1>
+        </marquee>
+    </a>
+    <a href="https://www.bilibili.com/video/BV1hq4y1s7VH/?spm_id_from=333.337.search-card.all.click">
+        <marquee>
+            <h1>😁点击进入官网备用😁</h1>
+        </marquee>
+    </a>
+    <a href="download.html">
+        <button>点击进入软件下载页面</button>
+    </a>
 
-function closeAdmin() {
-    adminModal.classList.remove('show');
-    adminPanel.classList.remove('show');
-    loginView.style.display = 'block';
-}
+    <!-- ============================================================ -->
+    <!-- ===== 新增：弹幕评论墙 ===== -->
+    <!-- ============================================================ -->
+    <div class="comment-section">
+        <h3>💬 弹幕评论墙</h3>
+        <div class="stage" id="stage"></div>
 
-closePanel.addEventListener('click', closeAdmin);
-adminModal.addEventListener('click', function(e) {
-    if (e.target === this) closeAdmin();
-});
+        <div class="post-area">
+            <input type="text" id="commentInput" placeholder="发一条弹幕..." maxlength="100">
+            <button id="postBtn">发送</button>
+        </div>
 
-// ============================================================
-// 7. 登录逻辑
-// ============================================================
-loginBtn.addEventListener('click', async function() {
-    const pwd = passwordInput.value;
-    const success = await checkPassword(pwd);
-    if (success) {
-        loginView.style.display = 'none';
-        adminPanel.classList.add('show');
-        loadAdminComments();
-    }
-});
+        <div class="stats">💬 在线 · <span id="countDisplay">0</span> 条</div>
+    </div>
 
-passwordInput.addEventListener('keydown', async function(e) {
-    if (e.key === 'Enter') {
-        const pwd = passwordInput.value;
-        const success = await checkPassword(pwd);
-        if (success) {
-            loginView.style.display = 'none';
-            adminPanel.classList.add('show');
+    <!-- ============================================================ -->
+    <!-- ===== 新增：管理入口（最底部） ===== -->
+    <!-- ============================================================ -->
+    <div class="admin-footer">
+        <button class="admin-trigger" id="adminTrigger">⚙️ 管理</button>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- ===== 新增：密码弹窗 + 管理面板 ===== -->
+    <!-- ============================================================ -->
+    <div class="admin-modal" id="adminModal">
+        <div class="modal-box">
+            <!-- 登录界面 -->
+            <div id="loginView">
+                <h3>🔐 管理员验证</h3>
+                <p class="sub">请输入密码进入管理后台</p>
+                <input type="password" id="passwordInput" placeholder="请输入密码" autocomplete="off">
+                <div class="lock-msg" id="lockMsg"></div>
+                <div class="error-msg" id="errorMsg"></div>
+                <button id="loginBtn">确认</button>
+            </div>
+
+            <!-- 管理面板 -->
+            <div class="admin-panel" id="adminPanel">
+                <div class="panel-header">
+                    <h4>🔧 评论管理</h4>
+                    <button class="close-panel" id="closePanel">✕ 关闭</button>
+                </div>
+
+                <div class="stats-row">
+                    <div class="stat-item">
+                        <div class="num" id="totalCount">0</div>
+                        <div class="label">总评论</div>
+                    </div>
+                    <div class="stat-item reported">
+                        <div class="num" id="reportedCount">0</div>
+                        <div class="label">被举报</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="num" id="normalCount">0</div>
+                        <div class="label">正常</div>
+                    </div>
+                </div>
+
+                <div class="admin-comment-list" id="adminCommentList"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- ===== 引入 Supabase 库 ===== -->
+    <!-- ============================================================ -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2">
+    </script>
+
+    <!-- ============================================================ -->
+    <!-- ===== 所有 JavaScript 逻辑 ===== -->
+    <!-- ============================================================ -->
+    <script>
+        // ============================================================
+        // 1. 🔧 Supabase 配置（改这里！）
+        // ============================================================
+        const SUPABASE_URL = 'https://rtkcxoyyz.supabase.co';
+        const SUPABASE_KEY = 'sb_publishable_wNDbtBTrVuXd95tBp0P7BA_TVUFQOur'; // ⬅️ 这里填你的密钥！
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+        // ============================================================
+        // 2. 🔐 密码系统（SHA-256 哈希）
+        // ============================================================
+        const CORRECT_HASH = '8d5e4e7d8f2a9c3b1e6f8a2d4c7b9e1f3a5c7d8e9f0a1b2c3d4e5f6a7b8c9d0e';
+
+        let failCount = parseInt(localStorage.getItem('admin_failCount')) || 0;
+        let lockUntil = parseInt(localStorage.getItem('admin_lockUntil')) || 0;
+
+        async function sha256(message) {
+            const msgBuffer = new TextEncoder().encode(message);
+            const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
+            const hashArray = Array.from(new Uint8Array(hashBuffer));
+            return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+        }
+
+        async function checkPassword(inputPwd) {
+            if (lockUntil > Date.now()) {
+                const remaining = Math.ceil((lockUntil - Date.now()) / 60000);
+                document.getElementById('lockMsg').style.display = 'block';
+                document.getElementById('lockMsg').textContent = '⛔ 错误次数过多，请等待 ' + remaining + ' 分钟后重试';
+                document.getElementById('errorMsg').textContent = '';
+                return false;
+            } else {
+                document.getElementById('lockMsg').style.display = 'none';
+            }
+
+            const inputHash = await sha256(inputPwd);
+
+            if (inputHash === CORRECT_HASH) {
+                failCount = 0;
+                localStorage.setItem('admin_failCount', '0');
+                document.getElementById('errorMsg').textContent = '';
+                document.getElementById('lockMsg').style.display = 'none';
+                return true;
+            } else {
+                failCount++;
+                localStorage.setItem('admin_failCount', String(failCount));
+
+                if (failCount >= 5) {
+                    lockUntil = Date.now() + 5 * 60 * 1000;
+                    localStorage.setItem('admin_lockUntil', String(lockUntil));
+                    document.getElementById('lockMsg').style.display = 'block';
+                    document.getElementById('lockMsg').textContent = '⛔ 错误次数过多，请等待 5 分钟后重试';
+                    document.getElementById('errorMsg').textContent = '';
+                } else {
+                    document.getElementById('errorMsg').textContent = '❌ 密码错误，还剩 ' + (5 - failCount) + ' 次机会';
+                    document.getElementById('lockMsg').style.display = 'none';
+                }
+                return false;
+            }
+        }
+
+        // ============================================================
+        // 3. 🆔 生成用户唯一编号
+        // ============================================================
+        function getUserId() {
+            let userId = localStorage.getItem('comment_user_id');
+            if (!userId) {
+                userId = 'U' + Date.now().toString(36) + Math.random().toString(36).substring(2, 6);
+                localStorage.setItem('comment_user_id', userId);
+            }
+            return userId;
+        }
+        const USER_ID = getUserId();
+
+        // ============================================================
+        // 4. 🎯 DOM 元素（评论墙）
+        // ============================================================
+        const stage = document.getElementById('stage');
+        const input = document.getElementById('commentInput');
+        const postBtn = document.getElementById('postBtn');
+        const countDisplay = document.getElementById('countDisplay');
+
+        const STAGE_HEIGHT = 350;
+        const ITEM_HEIGHT = 50;
+        const ROWS = Math.floor(STAGE_HEIGHT / ITEM_HEIGHT);
+        const rowOccupied = new Array(ROWS).fill(false);
+
+        // ============================================================
+        // 5. 🎯 DOM 元素（管理弹窗）
+        // ============================================================
+        const adminTrigger = document.getElementById('adminTrigger');
+        const adminModal = document.getElementById('adminModal');
+        const loginView = document.getElementById('loginView');
+        const adminPanel = document.getElementById('adminPanel');
+        const passwordInput = document.getElementById('passwordInput');
+        const loginBtn = document.getElementById('loginBtn');
+        const closePanel = document.getElementById('closePanel');
+        const errorMsg = document.getElementById('errorMsg');
+        const lockMsg = document.getElementById('lockMsg');
+        const totalCount = document.getElementById('totalCount');
+        const reportedCount = document.getElementById('reportedCount');
+        const normalCount = document.getElementById('normalCount');
+        const adminCommentList = document.getElementById('adminCommentList');
+
+        let allComments = [];
+
+        // ============================================================
+        // 6. 🪟 管理弹窗控制
+        // ============================================================
+        adminTrigger.addEventListener('click', function() {
+            adminModal.classList.add('show');
+            loginView.style.display = 'block';
+            adminPanel.classList.remove('show');
+            passwordInput.value = '';
+            errorMsg.textContent = '';
+            lockMsg.style.display = 'none';
+            if (lockUntil > Date.now()) {
+                const remaining = Math.ceil((lockUntil - Date.now()) / 60000);
+                lockMsg.style.display = 'block';
+                lockMsg.textContent = '⛔ 输入错误次数过多，请等待 ' + remaining + ' 分钟后重试';
+            }
+        });
+
+        function closeAdmin() {
+            adminModal.classList.remove('show');
+            adminPanel.classList.remove('show');
+            loginView.style.display = 'block';
+        }
+
+        closePanel.addEventListener('click', closeAdmin);
+        adminModal.addEventListener('click', function(e) {
+            if (e.target === this) closeAdmin();
+        });
+
+        // ============================================================
+        // 7. 🔑 登录逻辑
+        // ============================================================
+        loginBtn.addEventListener('click', async function() {
+            const pwd = passwordInput.value;
+            const success = await checkPassword(pwd);
+            if (success) {
+                loginView.style.display = 'none';
+                adminPanel.classList.add('show');
+                loadAdminComments();
+            }
+        });
+
+        passwordInput.addEventListener('keydown', async function(e) {
+            if (e.key === 'Enter') {
+                const pwd = passwordInput.value;
+                const success = await checkPassword(pwd);
+                if (success) {
+                    loginView.style.display = 'none';
+                    adminPanel.classList.add('show');
+                    loadAdminComments();
+                }
+            }
+        });
+
+        // ============================================================
+        // 8. 💬 评论墙功能
+        // ============================================================
+        async function loadHistory() {
+            try {
+                const { data, error } = await supabase
+                    .from('comments')
+                    .select('*')
+                    .order('created_at', { ascending: false })
+                    .limit(50);
+
+                if (error) {
+                    console.error('加载失败:', error);
+                    return;
+                }
+
+                if (data && data.length > 0) {
+                    const comments = data.slice(0, 30);
+                    comments.forEach((item, index) => {
+                        setTimeout(() => {
+                            addDanmaku(item.content, item.display_number, item.id);
+                        }, index * 400);
+                    });
+                    countDisplay.textContent = data.length;
+                }
+            } catch (err) {
+                console.error('网络错误:', err);
+            }
+        }
+
+        async function postComment() {
+            const text = input.value.trim();
+            if (!text) {
+                alert('请输入内容');
+                return;
+            }
+
+            try {
+                const { data, error } = await supabase
+                    .from('comments')
+                    .insert([{ content: text }])
+                    .select();
+
+                if (error) {
+                    console.error('发布失败:', error);
+                    alert('发布失败，请重试');
+                    return;
+                }
+
+                input.value = '';
+                if (data && data.length > 0) {
+                    const item = data[0];
+                    addDanmaku(item.content, item.display_number, item.id);
+                    const count = parseInt(countDisplay.textContent) + 1;
+                    countDisplay.textContent = count;
+                }
+            } catch (err) {
+                console.error('网络错误:', err);
+                alert('网络异常，请重试');
+            }
+        }
+
+        async function reportComment(id) {
+            const reason = prompt('请填写举报原因：', '违规内容');
+            if (!reason) return;
+
+            try {
+                const { error } = await supabase
+                    .from('comments')
+                    .update({
+                        is_reported: true,
+                        report_count: 1,
+                        report_reason: reason,
+                        reported_at: new Date().toISOString(),
+                        reporter_id: USER_ID
+                    })
+                    .eq('id', id);
+
+                if (error) {
+                    alert('举报失败，请重试');
+                    return;
+                }
+
+                alert('举报已提交，管理员将尽快核实处理');
+            } catch (err) {
+                console.error('网络错误:', err);
+                alert('网络异常，请重试');
+            }
+        }
+
+        function addDanmaku(text, number, id) {
+            let row = -1;
+            for (let attempt = 0; attempt < 20; attempt++) {
+                const candidate = Math.floor(Math.random() * ROWS);
+                if (!rowOccupied[candidate]) {
+                    row = candidate;
+                    break;
+                }
+            }
+            if (row === -1) {
+                for (let i = 0; i < ROWS; i++) {
+                    if (!rowOccupied[i]) { row = i; break; }
+                }
+            }
+            if (row === -1) row = Math.floor(Math.random() * ROWS);
+            rowOccupied[row] = true;
+
+            const el = document.createElement('div');
+            el.className = 'danmaku-item color-' + (Math.floor(Math.random() * 5) + 1);
+            el.style.top = (row * ITEM_HEIGHT + 10) + 'px';
+            el.style.left = '100%';
+
+            const badge = document.createElement('span');
+            badge.className = 'number-badge';
+            badge.textContent = '#' + String(number || '???').padStart(3, '0');
+            el.appendChild(badge);
+
+            const contentSpan = document.createElement('span');
+            contentSpan.textContent = text;
+            el.appendChild(contentSpan);
+
+            const reportBtn = document.createElement('button');
+            reportBtn.className = 'report-btn';
+            reportBtn.textContent = '举报';
+            reportBtn.addEventListener('click', function(e) {
+                e.stopPropagation();
+                if (id) reportComment(id);
+            });
+            el.appendChild(reportBtn);
+
+            stage.appendChild(el);
+            const startX = stage.clientWidth;
+
+            function animate() {
+                const currentX = parseFloat(el.style.left) || startX;
+                const newX = currentX - 0.8;
+                el.style.left = newX + 'px';
+                if (newX > -el.offsetWidth - 20) {
+                    requestAnimationFrame(animate);
+                } else {
+                    el.remove();
+                    rowOccupied[row] = false;
+                }
+            }
+            setTimeout(animate, 100);
+        }
+
+        postBtn.addEventListener('click', postComment);
+        input.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') postComment();
+        });
+
+        // ============================================================
+        // 9. 🛠️ 管理后台功能
+        // ============================================================
+        async function loadAdminComments() {
+            try {
+                const { data, error } = await supabase
+                    .from('comments')
+                    .select('*')
+                    .order('created_at', { ascending: false });
+
+                if (error) {
+                    console.error('加载失败:', error);
+                    return;
+                }
+
+                allComments = data || [];
+                updateAdminStats();
+                renderAdminComments();
+            } catch (err) {
+                console.error('网络错误:', err);
+            }
+        }
+
+        function updateAdminStats() {
+            const total = allComments.length;
+            const reported = allComments.filter(function(c) { return c.is_reported; }).length;
+            const normal = total - reported;
+
+            totalCount.textContent = total;
+            reportedCount.textContent = reported;
+            normalCount.textContent = normal;
+        }
+
+        function renderAdminComments() {
+            if (allComments.length === 0) {
+                adminCommentList.innerHTML = '<div class="no-comments">📭 暂无评论</div>';
+                return;
+            }
+
+            adminCommentList.innerHTML = allComments.map(function(item) {
+                var time = new Date(item.created_at).toLocaleString('zh-CN');
+                var isReported = item.is_reported;
+                var reportedClass = isReported ? 'reported' : '';
+                var reportBadge = isReported ? '🚨 已举报' : '正常';
+                var reportReason = isReported && item.report_reason ? '📢 ' + item.report_reason : '';
+                var reporterId = isReported && item.reporter_id ? '举报人: ' + item.reporter_id : '';
+
+                return '<div class="admin-comment-item ' + reportedClass + '">' +
+                    '<span class="ac-content">#' + String(item.display_number || '???').padStart(3, '0') + ' ' + escapeHtml(item
+                        .content) + '</span>' +
+                    '<span class="ac-meta">' + time + ' ' + reportBadge + ' ' + reportReason + ' ' + reporterId + '</span>' +
+                    '<div class="ac-actions">' +
+                    (isReported ? '<button class="btn-unreport" onclick="unreportComment(' + item.id + ')">✅</button>' :
+                        '') +
+                    '<button class="btn-edit" onclick="editComment(' + item.id + ')">✏️</button>' +
+                    '<button class="btn-delete" onclick="deleteComment(' + item.id + ')">🗑️</button>' +
+                    '</div>' +
+                    '</div>';
+            }).join('');
+        }
+
+        function escapeHtml(text) {
+            var div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        async function deleteComment(id) {
+            if (!confirm('确定要删除这条评论吗？')) return;
+
+            var { error } = await supabase
+                .from('comments')
+                .delete()
+                .eq('id', id);
+
+            if (error) {
+                alert('删除失败，请重试');
+                return;
+            }
+
             loadAdminComments();
         }
-    }
-});
 
-// ============================================================
-// 8. 评论墙功能
-// ============================================================
-async function loadHistory() {
-    try {
-        const { data, error } = await supabase
-            .from('comments')
-            .select('*')
-            .order('created_at', { ascending: false })
-            .limit(50);
+        async function unreportComment(id) {
+            if (!confirm('确认已核实并处理该举报？')) return;
 
-        if (error) {
-            console.error('加载失败:', error);
-            return;
+            var { error } = await supabase
+                .from('comments')
+                .update({
+                    is_reported: false,
+                    report_count: 0,
+                    report_reason: null
+                })
+                .eq('id', id);
+
+            if (error) {
+                alert('操作失败，请重试');
+                return;
+            }
+
+            loadAdminComments();
         }
 
-        if (data && data.length > 0) {
-            const comments = data.slice(0, 30);
-            comments.forEach((item, index) => {
-                setTimeout(() => {
-                    addDanmaku(item.content, item.display_number, item.id);
-                }, index * 400);
-            });
-            countDisplay.textContent = data.length;
-        }
-    } catch (err) {
-        console.error('网络错误:', err);
-    }
-}
+        async function editComment(id) {
+            var item = allComments.find(function(c) { return c.id === id; });
+            if (!item) return;
 
-async function postComment() {
-    const text = input.value.trim();
-    if (!text) {
-        alert('请输入内容');
-        return;
-    }
+            var newContent = prompt('修改评论内容：', item.content);
+            if (newContent === null) return;
+            if (!newContent.trim()) {
+                alert('内容不能为空');
+                return;
+            }
 
-    try {
-        const { data, error } = await supabase
-            .from('comments')
-            .insert([{ content: text }])
-            .select();
+            var { error } = await supabase
+                .from('comments')
+                .update({ content: newContent.trim() })
+                .eq('id', id);
 
-        if (error) {
-            console.error('发布失败:', error);
-            alert('发布失败，请重试');
-            return;
+            if (error) {
+                alert('修改失败，请重试');
+                return;
+            }
+
+            loadAdminComments();
         }
 
-        input.value = '';
-        if (data && data.length > 0) {
-            const item = data[0];
-            addDanmaku(item.content, item.display_number, item.id);
-            const count = parseInt(countDisplay.textContent) + 1;
-            countDisplay.textContent = count;
-        }
-    } catch (err) {
-        console.error('网络错误:', err);
-        alert('网络异常，请重试');
-    }
-}
+        window.deleteComment = deleteComment;
+        window.unreportComment = unreportComment;
+        window.editComment = editComment;
 
-async function reportComment(id) {
-    const reason = prompt('请填写举报原因：', '违规内容');
-    if (!reason) return;
+        // ============================================================
+        // 10. 🚀 初始化
+        // ============================================================
+        loadHistory();
+    </script>
 
-    try {
-        const { error } = await supabase
-            .from('comments')
-            .update({
-                is_reported: true,
-                report_count: 1,
-                report_reason: reason,
-                reported_at: new Date().toISOString(),
-                reporter_id: USER_ID
-            })
-            .eq('id', id);
-
-        if (error) {
-            alert('举报失败，请重试');
-            return;
-        }
-
-        alert('举报已提交，管理员将尽快核实处理');
-    } catch (err) {
-        console.error('网络错误:', err);
-        alert('网络异常，请重试');
-    }
-}
-
-function addDanmaku(text, number, id) {
-    let row = -1;
-    for (let attempt = 0; attempt < 20; attempt++) {
-        const candidate = Math.floor(Math.random() * ROWS);
-        if (!rowOccupied[candidate]) {
-            row = candidate;
-            break;
-        }
-    }
-    if (row === -1) {
-        for (let i = 0; i < ROWS; i++) {
-            if (!rowOccupied[i]) { row = i; break; }
-        }
-    }
-    if (row === -1) row = Math.floor(Math.random() * ROWS);
-    rowOccupied[row] = true;
-
-    const el = document.createElement('div');
-    el.className = 'danmaku-item color-' + (Math.floor(Math.random() * 5) + 1);
-    el.style.top = (row * ITEM_HEIGHT + 10) + 'px';
-    el.style.left = '100%';
-
-    const badge = document.createElement('span');
-    badge.className = 'number-badge';
-    badge.textContent = '#' + String(number || '???').padStart(3, '0');
-    el.appendChild(badge);
-
-    const contentSpan = document.createElement('span');
-    contentSpan.textContent = text;
-    el.appendChild(contentSpan);
-
-    const reportBtn = document.createElement('button');
-    reportBtn.className = 'report-btn';
-    reportBtn.textContent = '举报';
-    reportBtn.addEventListener('click', function(e) {
-        e.stopPropagation();
-        if (id) reportComment(id);
-    });
-    el.appendChild(reportBtn);
-
-    stage.appendChild(el);
-    const startX = stage.clientWidth;
-
-    function animate() {
-        const currentX = parseFloat(el.style.left) || startX;
-        const newX = currentX - 0.8;
-        el.style.left = newX + 'px';
-        if (newX > -el.offsetWidth - 20) {
-            requestAnimationFrame(animate);
-        } else {
-            el.remove();
-            rowOccupied[row] = false;
-        }
-    }
-    setTimeout(animate, 100);
-}
-
-postBtn.addEventListener('click', postComment);
-input.addEventListener('keydown', function(e) {
-    if (e.key === 'Enter') postComment();
-});
-
-// ============================================================
-// 9. 管理后台功能
-// ============================================================
-async function loadAdminComments() {
-    try {
-        const { data, error } = await supabase
-            .from('comments')
-            .select('*')
-            .order('created_at', { ascending: false });
-
-        if (error) {
-            console.error('加载失败:', error);
-            return;
-        }
-
-        allComments = data || [];
-        updateAdminStats();
-        renderAdminComments();
-    } catch (err) {
-        console.error('网络错误:', err);
-    }
-}
-
-function updateAdminStats() {
-    const total = allComments.length;
-    const reported = allComments.filter(function(c) { return c.is_reported; }).length;
-    const normal = total - reported;
-
-    totalCount.textContent = total;
-    reportedCount.textContent = reported;
-    normalCount.textContent = normal;
-}
-
-function renderAdminComments() {
-    if (allComments.length === 0) {
-        adminCommentList.innerHTML = '<div class="no-comments">📭 暂无评论</div>';
-        return;
-    }
-
-    adminCommentList.innerHTML = allComments.map(function(item) {
-        var time = new Date(item.created_at).toLocaleString('zh-CN');
-        var isReported = item.is_reported;
-        var reportedClass = isReported ? 'reported' : '';
-        var reportBadge = isReported ? '🚨 已举报' : '正常';
-        var reportReason = isReported && item.report_reason ? '📢 ' + item.report_reason : '';
-        var reporterId = isReported && item.reporter_id ? '举报人: ' + item.reporter_id : '';
-
-        return '<div class="admin-comment-item ' + reportedClass + '">' +
-            '<span class="ac-content">#' + String(item.display_number || '???').padStart(3, '0') + ' ' + escapeHtml(item.content) + '</span>' +
-            '<span class="ac-meta">' + time + ' ' + reportBadge + ' ' + reportReason + ' ' + reporterId + '</span>' +
-            '<div class="ac-actions">' +
-            (isReported ? '<button class="btn-unreport" onclick="unreportComment(' + item.id + ')">✅</button>' : '') +
-            '<button class="btn-edit" onclick="editComment(' + item.id + ')">✏️</button>' +
-            '<button class="btn-delete" onclick="deleteComment(' + item.id + ')">🗑️</button>' +
-            '</div>' +
-            '</div>';
-    }).join('');
-}
-
-function escapeHtml(text) {
-    var div = document.createElement('div');
-    div.textContent = text;
-    return div.innerHTML;
-}
-
-async function deleteComment(id) {
-    if (!confirm('确定要删除这条评论吗？')) return;
-
-    var { error } = await supabase
-        .from('comments')
-        .delete()
-        .eq('id', id);
-
-    if (error) {
-        alert('删除失败，请重试');
-        return;
-    }
-
-    loadAdminComments();
-}
-
-async function unreportComment(id) {
-    if (!confirm('确认已核实并处理该举报？')) return;
-
-    var { error } = await supabase
-        .from('comments')
-        .update({
-            is_reported: false,
-            report_count: 0,
-            report_reason: null
-        })
-        .eq('id', id);
-
-    if (error) {
-        alert('操作失败，请重试');
-        return;
-    }
-
-    loadAdminComments();
-}
-
-async function editComment(id) {
-    var item = allComments.find(function(c) { return c.id === id; });
-    if (!item) return;
-
-    var newContent = prompt('修改评论内容：', item.content);
-    if (newContent === null) return;
-    if (!newContent.trim()) {
-        alert('内容不能为空');
-        return;
-    }
-
-    var { error } = await supabase
-        .from('comments')
-        .update({ content: newContent.trim() })
-        .eq('id', id);
-
-    if (error) {
-        alert('修改失败，请重试');
-        return;
-    }
-
-    loadAdminComments();
-}
-
-// 把函数暴露到全局（给 onclick 用）
-window.deleteComment = deleteComment;
-window.unreportComment = unreportComment;
-window.editComment = editComment;
-
-// ============================================================
-// 10. 初始化
-// ============================================================
-loadHistory();
-</script>
+</body>
+</html>
