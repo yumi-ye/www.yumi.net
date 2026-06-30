@@ -504,7 +504,8 @@
 // ============================================================
 const SUPABASE_URL = 'https://rtkcxoyyzunmaueokimn.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_wNDbtBTrVuXd95tBp0P7BA_TVUFQOur';
-
+const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+    
 // ============================================================
 // 2. 密码系统（SHA-256 哈希）
 // ============================================================
